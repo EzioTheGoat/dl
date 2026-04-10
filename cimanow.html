@@ -1115,68 +1115,66 @@
     }
 
   })();
+  </script>
+  <!-- ═══ AUDIO ═══ -->
+<audio id="bgMusic" loop preload="auto">
+  <source src="https://files.catbox.moe/jydixl.mp3" type="audio/mpeg">
+</audio>
+
+<!-- ═══ MUSIC TOGGLE BUTTON ═══ -->
+<button id="musicToggle" class="music-btn" aria-label="Toggle Music">
+  <svg id="musicIconOn" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+       stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+       width="20" height="20" style="display:none;">
+    <path d="M9 18V5l12-2v13"/>
+    <circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/>
+  </svg>
+  <svg id="musicIconOff" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+       stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+       width="20" height="20">
+    <path d="M9 18V5l12-2v13"/>
+    <circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/>
+    <line x1="1" y1="1" x2="23" y2="23" stroke-width="2.5"/>
+  </svg>
+</button>
+
+<!-- ═══ MUSIC SCRIPT ═══ -->
 <script>
 (function() {
-  const audio   = document.getElementById('bgMusic');
-  const btn     = document.getElementById('musicToggle');
-  const iconOn  = document.getElementById('musicIconOn');
-  const iconOff = document.getElementById('musicIconOff');
-  let isPlaying = false;
+  const audio    = document.getElementById('bgMusic');
+  const btn      = document.getElementById('musicToggle');
+  const iconOn   = document.getElementById('musicIconOn');
+  const iconOff  = document.getElementById('musicIconOff');
+  let isPlaying  = false;
 
   audio.volume = 0.3;
-
-  function setPlaying() {
-    isPlaying = true;
-    btn.classList.add('playing');
-    iconOn.style.display  = 'block';
-    iconOff.style.display = 'none';
-  }
-
-  function setPaused() {
-    isPlaying = false;
-    btn.classList.remove('playing');
-    iconOn.style.display  = 'none';
-    iconOff.style.display = 'block';
-  }
 
   function toggleMusic() {
     if (isPlaying) {
       audio.pause();
-      setPaused();
+      btn.classList.remove('playing');
+      iconOn.style.display  = 'none';
+      iconOff.style.display = 'block';
     } else {
-      audio.play().then(setPlaying).catch(function(){});
+      audio.play().then(function() {
+        btn.classList.add('playing');
+        iconOn.style.display  = 'block';
+        iconOff.style.display = 'none';
+      }).catch(function(err) {
+        console.log('Autoplay blocked:', err);
+      });
     }
+    isPlaying = !isPlaying;
   }
 
   btn.addEventListener('click', toggleMusic);
 
-  // ══ METHOD 1: Try instant autoplay ══
-  var tryPlay = audio.play();
-  if (tryPlay !== undefined) {
-    tryPlay.then(setPlaying).catch(function() {
-
-      // ══ METHOD 2: Start muted, then unmute ══
-      audio.muted = true;
-      audio.play().then(function() {
-        audio.muted = false;
-        setPlaying();
-      }).catch(function() {
-
-        // ══ METHOD 3: Wait for ANY user interaction ══
-        var events = ['click','touchstart','scroll','keydown','mousemove'];
-        function forcePlay() {
-          audio.muted = false;
-          audio.play().then(setPlaying).catch(function(){});
-          events.forEach(function(e) {
-            document.removeEventListener(e, forcePlay);
-          });
-        }
-        events.forEach(function(e) {
-          document.addEventListener(e, forcePlay, { once: true });
-        });
-      });
-    });
-  }
+  // Auto-play on first user interaction
+  document.addEventListener('click', function autoPlay(e) {
+    if (e.target === btn || btn.contains(e.target)) return;
+    if (!isPlaying) toggleMusic();
+    document.removeEventListener('click', autoPlay);
+  }, { once: true });
 })();
 </script>
 </body>
