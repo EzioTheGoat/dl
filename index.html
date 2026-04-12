@@ -332,7 +332,28 @@ body.desktop .ezc__speed{animation:speedP 3s ease-in-out infinite}
 .ezftr__ac{width:40px;height:48px;margin:0 auto 12px;opacity:0.5}
 .ezftr__txt{font-size:12px;color:var(--t3)}
 .ezftr__txt a{color:var(--gold);text-decoration:none;font-weight:700}
-.ezftr__ver{display:inline-block;font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--t3);background:var(--card);border:1px solid var(--brd);padding:3px 12px;border-radius:8px;margin-top:10px}
+.ezftr__ver {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px;
+  font-weight: 500;
+  letter-spacing: 0.06em;
+  color: var(--t2);
+  background: var(--card);
+  border: 1px solid var(--brd);
+  padding: 4px 12px;
+  border-radius: 6px;
+  margin-top: 10px;
+  transition: color 0.2s, border-color 0.2s, background 0.2s;
+}
+
+.ezftr__ver:hover {
+  color: var(--t1);
+  background: var(--card-h);
+  border-color: var(--brd-h);
+}
 .ezftr__creed{font-size:10px;color:var(--gold);opacity:0.4;font-style:italic;margin-top:12px;letter-spacing:0.5px}
 
 /* ── Animations ── */
@@ -632,7 +653,7 @@ body.desktop .ezc__speed{animation:speedP 3s ease-in-out infinite}
       <div class="ezftr">
         <div class="ezftr__ac">${AC_SVG}</div>
         <p class="ezftr__txt">صُنع بإتقان بواسطة <a href="#">Ezio Auditore</a></p>
-        <span class="ezftr__ver">© Ezio Scripts <span id="yearSpan"></span></span>
+        <span class="ezftr__ver">© <span id="yearSpan"></span> Ezio Scripts</span>
         <p class="ezftr__creed">"لا شيء حقيقي، كل شيء مباح"</p>
       </div>
     `;
