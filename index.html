@@ -305,6 +305,28 @@ body.desktop .ezc__speed{animation:speedP 3s ease-in-out infinite}
 .ezc:hover .ezc__arrow{opacity:1;transform:translateX(0);color:var(--acc)}
 .ezc--rec:hover .ezc__arrow{color:var(--gold)}
 
+/* ═══ MUSIC BUTTON ═══ */
+.music-btn {
+  position: fixed; bottom: 20px; right: 20px; z-index: 9998;
+  width: 44px; height: 44px; border-radius: 50%;
+  border: 1px solid var(--brd);
+  background: rgba(10, 15, 26, 0.85);
+  color: var(--gold);
+  display: flex; align-items: center; justify-content: center;
+  cursor: pointer; transition: all 0.3s;
+  backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
+}
+.music-btn:hover {
+  transform: scale(1.1);
+  border-color: rgba(201, 151, 92, 0.3);
+  box-shadow: 0 0 20px rgba(201, 151, 92, 0.15);
+}
+.music-btn.playing { animation: musicPulse 1.5s ease infinite; }
+@keyframes musicPulse {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(201, 151, 92, 0.3); }
+  50%       { box-shadow: 0 0 0 8px rgba(201, 151, 92, 0); }
+}  
+  
 /* ── Footer ── */
 .ezftr{text-align:center;margin-top:48px;padding-top:28px;border-top:1px solid var(--brd);animation:fadeUp 0.7s cubic-bezier(0.16,1,0.3,1) 0.6s both}
 .ezftr__ac{width:40px;height:48px;margin:0 auto 12px;opacity:0.5}
@@ -324,6 +346,14 @@ body.desktop .ezc__speed{animation:speedP 3s ease-in-out infinite}
 </style>
 </head>
 <body>
+
+<!-- ═══ AUDIO ═══ -->
+  <audio id="bgMusic" loop preload="auto">
+    <source src="https://files.catbox.moe/jydixl.mp3" type="audio/mpeg">
+  </audio>
+  <div class="music-btn" id="musicBtn" title="تشغيل/إيقاف الموسيقى">
+    <svg id="musicIco" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>
+  </div>  
 
 <!-- Loading Screen -->
 <div class="ld-screen" id="ldScreen">
@@ -438,6 +468,26 @@ body.desktop .ezc__speed{animation:speedP 3s ease-in-out infinite}
       }catch{ return null; }
     }
   }
+
+    // ═══ MUSIC ═══
+    var music = document.getElementById("bgMusic");
+    var musicBtn = document.getElementById("musicBtn");
+    var isPlaying = false;
+    if (music) music.volume = 0.3;
+    if (musicBtn) {
+      musicBtn.addEventListener("click", function() {
+        if (isPlaying) {
+          music.pause();
+          musicBtn.classList.remove("playing");
+          isPlaying = false;
+        } else {
+          music.play().then(function() {
+            musicBtn.classList.add("playing");
+            isPlaying = true;
+          }).catch(function(){});
+        }
+      });
+    }
 
   // ── Render ──
   function render(data){
@@ -851,17 +901,25 @@ body.desktop .ezc__speed{animation:speedP 3s ease-in-out infinite}
     }
 
     setTimeout(()=>{
-      // Route based on payload mode
-      if(data.mode === "direct"){
-        renderDirect(data);
-      } else if(data.mode === "error"){
-        renderErrorPage();
-      } else if(data.groups){
-        render(data);
-      } else {
-        showError();
-      }
-    }, 1500);
+  // Route based on payload mode
+  if(data.mode === "direct"){
+    renderDirect(data);
+  } else if(data.mode === "error"){
+    renderErrorPage();
+  } else if(data.groups){
+    render(data);
+  } else {
+    showError();
+  }
+
+  // Try auto-play music
+  if (music) {
+    music.play().then(function() {
+      isPlaying = true;
+      if (musicBtn) musicBtn.classList.add("playing");
+    }).catch(function() { isPlaying = false; });
+  }
+}, 1500);
   }
 
   // Run
