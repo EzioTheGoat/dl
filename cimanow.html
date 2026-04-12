@@ -342,8 +342,26 @@
     .ft-heart{display:inline-block;animation:heartBeat 1.5s ease infinite;font-style:normal}
     @keyframes heartBeat{0%,100%{transform:scale(1)}15%{transform:scale(1.25)}30%{transform:scale(1)}45%{transform:scale(1.15)}60%{transform:scale(1)}}
     .ft-copy-year{color:rgba(167,139,250,.3);font-weight:700;font-family:var(--font-en)}
-    .ft-version{display:inline-flex;align-items:center;padding:5px 14px;border-radius:8px;font-size:9px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:rgba(99,102,241,.35);background:rgba(99,102,241,.04);border:1px solid rgba(99,102,241,.08)}
-
+    .ft-version {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 5px 12px;
+    border-radius: 6px;
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: rgba(99, 102, 241, 0.75);
+    background: rgba(99, 102, 241, 0.06);
+    border: 1px solid rgba(99, 102, 241, 0.18);
+    transition: color 0.2s, border-color 0.2s;
+  }
+  
+  .ft-version:hover {
+    color: rgba(99, 102, 241, 0.95);
+    border-color: rgba(99, 102, 241, 0.35);
+  }
     /* ═══ NO DATA ═══ */
     #noDataScreen{
       display:none;position:fixed;inset:0;z-index:9996;
@@ -590,7 +608,7 @@
         <span class="ft-copy-dot">·</span>
         <span class="ft-copy-heart">صنع بـ <span class="ft-heart">❤️</span></span>
       </div>
-      <div class="ft-version">© Ezio Scripts <span id="yearSpan"></span></div>
+      <div class="ft-version">© <span id="yearSpan"></span> Ezio Scripts</div>
     </div>
   </div>
   
