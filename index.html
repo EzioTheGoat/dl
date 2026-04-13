@@ -417,9 +417,6 @@ body.desktop .ezc__speed{animation:speedP 3s ease-in-out infinite}
 
   const mobile = /Android|iPhone|iPad|iPod|webOS|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
   document.body.classList.add(mobile ? "mobile" : "desktop");
-
-  // ═══ YEAR ═══
-  document.getElementById("yearSpan").textContent = new Date().getFullYear();
   
   // ── SVGs ──
   const AC_SVG = `<svg viewBox="0 0 100 120" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M50 8 L20 95 L35 75 L50 105 L65 75 L80 95 Z" stroke="url(#aG)" stroke-width="2" fill="none" opacity="0.9"/><path d="M50 25 L32 80 L42 68 L50 85 L58 68 L68 80 Z" fill="url(#aG)" opacity="0.15"/><defs><linearGradient id="aG" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#d4a574"/><stop offset="50%" stop-color="#c9975c"/><stop offset="100%" stop-color="#a07840"/></linearGradient></defs></svg>`;
@@ -660,8 +657,10 @@ body.desktop .ezc__speed{animation:speedP 3s ease-in-out infinite}
 
     // Show content
     hideLoading();
-    document.getElementById("mainWrap").classList.add("visible");
-  }
+document.getElementById("mainWrap").classList.add("visible");
+const ys = document.getElementById("yearSpan");
+if(ys) ys.textContent = new Date().getFullYear();
+  
 
   // ── XSS protection ──
   function esc(str){
