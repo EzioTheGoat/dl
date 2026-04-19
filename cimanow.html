@@ -1270,9 +1270,10 @@
         var hashStr = location.hash.slice(1);
         var decoded = JSON.parse(decodeURIComponent(atob(hashStr)));
         if(decoded && decoded.links && Object.keys(decoded.links).length){
-          history.replaceState(null,"",location.pathname+location.search);
-          try{ localStorage.setItem(DATA_KEY, JSON.stringify(decoded)); } catch(e){}
-          return decoded;
+history.replaceState(null,"",location.pathname+location.search);
+decoded.timestamp = Date.now();
+try{ localStorage.setItem(DATA_KEY, JSON.stringify(decoded)); } catch(e){}
+return decoded;
         }
       } catch(e){ console.warn("[CimaNow UI] Hash decode failed:", e.message); }
     }
@@ -1280,10 +1281,11 @@
       var raw = localStorage.getItem(DATA_KEY);
       if(raw){
         var p = JSON.parse(raw);
-        if(p && p.links && Object.keys(p.links).length){
-          if(p.timestamp && Date.now()-p.timestamp < 30*60*1000) return p;
-          else localStorage.removeItem(DATA_KEY);
-        }
+      if(p && p.links && Object.keys(p.links).length){
+  if(!p.timestamp) p.timestamp = Date.now();
+  if(Date.now()-p.timestamp < 30*60*1000) return p;
+  else localStorage.removeItem(DATA_KEY);
+      }
       }
     } catch(e){}
     return null;
