@@ -2322,7 +2322,7 @@
       function escapeHtml(str) {
         if (!str) return "";
         var d = document.createElement("div");
-        d.appendChild(document.createTextNode(str));
+        d.appendChild(document.createTextNode(String(str)));
         return d.innerHTML;
       }
 
@@ -2430,48 +2430,38 @@
           var u = el.getAttribute("data-url");
           if (u && allUrls.indexOf(u) === -1) allUrls.push(u);
         });
-        if (allUrls.length) {
-          if (navigator.clipboard && navigator.clipboard.writeText) {
-            navigator.clipboard.writeText(allUrls.join("\n")).then(function () {
-              showToast("تم نسخ جميع الروابط (" + allUrls.length + ") 🚀");
-            }).catch(function () {
-              showToast("فشل نسخ الروابط ❌");
-            });
-          } else {
-            var ta = document.createElement("textarea");
-            ta.value = allUrls.join("\n");
-            ta.style.cssText = "position:fixed;opacity:0;left:-9999px";
-            document.body.appendChild(ta);
-            ta.select();
-            try { document.execCommand("copy"); showToast("تم نسخ جميع الروابط (" + allUrls.length + ") 🚀"); }
-            catch (e) { showToast("فشل النسخ ❌"); }
-            document.body.removeChild(ta);
-          }
+        if (!allUrls.length) return;
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+          navigator.clipboard.writeText(allUrls.join("\n")).then(function () {
+            showToast("تم نسخ جميع الروابط (" + allUrls.length + ") 🚀");
+          }).catch(function () { showToast("فشل نسخ الروابط ❌"); });
+        } else {
+          var ta = document.createElement("textarea");
+          ta.value = allUrls.join("\n");
+          ta.style.cssText = "position:fixed;opacity:0;left:-9999px";
+          document.body.appendChild(ta);
+          ta.select();
+          try { document.execCommand("copy"); showToast("تم نسخ جميع الروابط (" + allUrls.length + ") 🚀"); }
+          catch (e) { showToast("فشل النسخ ❌"); }
+          document.body.removeChild(ta);
         }
       }
 
       document.addEventListener("click", function (e) {
         var navEl = e.target.closest('[data-action="nav"]');
         if (navEl) { e.preventDefault(); ezioNav(navEl); return; }
-
         var copyEl = e.target.closest('[data-action="copy"]');
         if (copyEl) { e.preventDefault(); e.stopPropagation(); var url = copyEl.getAttribute("data-copy-url"); if (url) ezioCopy(url, copyEl); return; }
-
         var grpHeader = e.target.closest(".grp-h");
         if (grpHeader) { grpHeader.parentElement.classList.toggle("grp-collapsed"); return; }
       });
 
       document.addEventListener("keydown", function (e) {
-        if (e.ctrlKey && e.shiftKey && e.key === "C") {
-          e.preventDefault();
-          copyAllLinks();
-        }
+        if (e.ctrlKey && e.shiftKey && e.key === "C") { e.preventDefault(); copyAllLinks(); }
       });
 
       var copyAllBtn = document.getElementById("copyAllBtn");
-      if (copyAllBtn) {
-        copyAllBtn.addEventListener("click", function () { copyAllLinks(); });
-      }
+      if (copyAllBtn) copyAllBtn.addEventListener("click", function () { copyAllLinks(); });
 
       var music = document.getElementById("bgMusic");
       var musicBtn = document.getElementById("musicBtn");
@@ -2493,8 +2483,8 @@
       }
 
       if (!isMobile && window.matchMedia("(hover:hover)").matches) {
-        var hero = document.querySelector(".hero-icon-wrap");
-        if (hero) {
+        var heroWrap = document.querySelector(".hero-icon-wrap");
+        if (heroWrap) {
           var ticking = false;
           document.addEventListener("mousemove", function (e) {
             if (!ticking) {
@@ -2502,7 +2492,7 @@
               requestAnimationFrame(function () {
                 var x = (e.clientX / window.innerWidth - 0.5) * 12;
                 var y = (e.clientY / window.innerHeight - 0.5) * 12;
-                hero.style.transform = "perspective(600px) rotateY(" + x + "deg) rotateX(" + (-y) + "deg)";
+                heroWrap.style.transform = "perspective(600px) rotateY(" + x + "deg) rotateX(" + (-y) + "deg)";
                 ticking = false;
               });
             }
@@ -2536,68 +2526,74 @@
         }
         var io = new IntersectionObserver(function (entries) {
           entries.forEach(function (entry) {
-            if (entry.isIntersecting) {
-              entry.target.classList.add("revealed");
-              io.unobserve(entry.target);
-            }
+            if (entry.isIntersecting) { entry.target.classList.add("revealed"); io.unobserve(entry.target); }
           });
         }, { threshold: 0.1, rootMargin: "0px 0px -50px 0px" });
         document.querySelectorAll(".grp").forEach(function (g) { io.observe(g); });
       }
 
       function hideAllScreens() {
-        var loader = document.getElementById("loader");
-        var waiting = document.getElementById("waitingScreen");
-        var error = document.getElementById("errorScreen");
-        if (loader) loader.classList.add("hidden");
-        if (waiting) waiting.classList.add("hidden");
-        if (error) error.classList.remove("show");
+        var l = document.getElementById("loader");
+        var w = document.getElementById("waitingScreen");
+        var e = document.getElementById("errorScreen");
+        if (l) l.classList.add("hidden");
+        if (w) w.classList.add("hidden");
+        if (e) e.classList.remove("show");
       }
 
       function showErrorScreen() {
-        var loader = document.getElementById("loader");
-        var waiting = document.getElementById("waitingScreen");
-        var error = document.getElementById("errorScreen");
-        if (loader) loader.classList.add("hidden");
-        if (waiting) waiting.classList.add("hidden");
-        if (error) error.classList.add("show");
+        var l = document.getElementById("loader");
+        var w = document.getElementById("waitingScreen");
+        var e = document.getElementById("errorScreen");
+        if (l) l.classList.add("hidden");
+        if (w) w.classList.add("hidden");
+        if (e) e.classList.add("show");
+      }
+
+      function validatePayload(payload) {
+        if (!payload || typeof payload !== "object") return false;
+        if (!payload.links || typeof payload.links !== "object") return false;
+        var keys = Object.keys(payload.links);
+        if (keys.length === 0) return false;
+        for (var i = 0; i < keys.length; i++) {
+          var arr = payload.links[keys[i]];
+          if (Array.isArray(arr) && arr.length > 0) {
+            for (var j = 0; j < arr.length; j++) {
+              if (arr[j] && arr[j].url && typeof arr[j].url === "string" && arr[j].url.length > 1) return true;
+            }
+          }
+        }
+        return false;
+      }
+
+      function decodePayload(encoded) {
+        var raw = null;
+        try { raw = atob(encoded); } catch (e) { console.log("[CimaNow UI] atob failed:", e.message); return null; }
+        var jsonStr = null;
+        try { jsonStr = decodeURIComponent(raw); } catch (e) { }
+        if (jsonStr) {
+          try {
+            var obj = JSON.parse(jsonStr);
+            if (validatePayload(obj)) { console.log("[CimaNow UI] Decoded via decodeURIComponent(atob())"); return obj; }
+          } catch (e) { }
+        }
+        try {
+          var obj2 = JSON.parse(raw);
+          if (validatePayload(obj2)) { console.log("[CimaNow UI] Decoded via JSON.parse(atob())"); return obj2; }
+        } catch (e) { }
+        try {
+          var unescaped = decodeURIComponent(escape(raw));
+          var obj3 = JSON.parse(unescaped);
+          if (validatePayload(obj3)) { console.log("[CimaNow UI] Decoded via decodeURIComponent(escape(atob()))"); return obj3; }
+        } catch (e) { }
+        console.log("[CimaNow UI] All decode attempts failed");
+        return null;
       }
 
       function buildUI(payload) {
         if (dataLoaded) return;
-
-        var data = null;
-        var media = { type: "movie", title: "", season: null, episode: null, trans: "", year: null };
-
-        if (payload && payload.links) {
-          data = payload.links;
-        }
-        if (payload && payload.media) {
-          media = payload.media;
-        }
-
-        if (!media.type) media.type = "movie";
-        if (!media.title) media.title = "";
-        if (media.season === undefined) media.season = null;
-        if (media.episode === undefined) media.episode = null;
-        if (!media.trans) media.trans = "";
-        if (!media.year) media.year = null;
-
-        if (!data || typeof data !== "object" || !Object.keys(data).length) {
-          showErrorScreen();
-          return;
-        }
-
-        var hasAnyLinks = false;
-        var keys = Object.keys(data);
-        for (var ki = 0; ki < keys.length; ki++) {
-          if (Array.isArray(data[keys[ki]]) && data[keys[ki]].length > 0) {
-            hasAnyLinks = true;
-            break;
-          }
-        }
-
-        if (!hasAnyLinks) {
+        if (!validatePayload(payload)) {
+          console.log("[CimaNow UI] Payload validation failed", payload);
           showErrorScreen();
           return;
         }
@@ -2605,13 +2601,30 @@
         dataLoaded = true;
         hideAllScreens();
 
+        var data = payload.links;
+        var media = payload.media || {};
+        if (!media.type) media.type = "movie";
+        if (!media.title) media.title = "";
+        if (media.season === undefined) media.season = null;
+        if (media.episode === undefined) media.episode = null;
+        if (!media.trans) media.trans = "";
+        if (!media.year) media.year = null;
+
         var allItems = [];
-        Object.values(data).forEach(function (arr) {
-          if (Array.isArray(arr)) allItems = allItems.concat(arr);
-        });
+        var groupKeys = Object.keys(data);
+        for (var gki = 0; gki < groupKeys.length; gki++) {
+          var arr = data[groupKeys[gki]];
+          if (Array.isArray(arr)) {
+            for (var ai = 0; ai < arr.length; ai++) allItems.push(arr[ai]);
+          }
+        }
         var totalLinks = allItems.length;
-        var totalGroups = Object.keys(data).length;
-        var allQ = allItems.filter(function (i) { return i && i.quality; }).sort(function (a, b) { return parseInt(b.quality) - parseInt(a.quality); });
+        var totalGroups = groupKeys.length;
+        var allQ = [];
+        for (var qi2 = 0; qi2 < allItems.length; qi2++) {
+          if (allItems[qi2] && allItems[qi2].quality) allQ.push(allItems[qi2]);
+        }
+        allQ.sort(function (a, b) { return parseInt(b.quality) - parseInt(a.quality); });
         var bestQuality = allQ.length ? allQ[0].quality : "N/A";
 
         var hasSE = media.type !== "movie" && (media.season !== null || media.episode !== null);
@@ -2643,19 +2656,26 @@
         var groupsHTML = "";
         var gi = 0;
 
-        Object.keys(data).forEach(function (title) {
+        for (var gIdx = 0; gIdx < groupKeys.length; gIdx++) {
+          var title = groupKeys[gIdx];
           var items = data[title];
-          if (!Array.isArray(items)) return;
+          if (!Array.isArray(items) || items.length === 0) continue;
 
-          var qi = items.filter(function (i) { return i && i.quality; }).sort(function (a, b) { return getQM(b.quality).tier - getQM(a.quality).tier; });
-          var oi = items.filter(function (i) { return i && !i.quality; });
+          var qItems = [];
+          var oItems = [];
+          for (var ii = 0; ii < items.length; ii++) {
+            if (!items[ii]) continue;
+            if (items[ii].quality) qItems.push(items[ii]);
+            else oItems.push(items[ii]);
+          }
+          qItems.sort(function (a, b) { return getQM(b.quality).tier - getQM(a.quality).tier; });
 
           var qCards = "";
-          qi.forEach(function (item, idx) {
+          for (var qci = 0; qci < qItems.length; qci++) {
+            var item = qItems[qci];
             var m = getQM(item.quality);
-            var isBest = idx === 0 && m.tier >= 3;
+            var isBest = qci === 0 && m.tier >= 3;
             var safeUrl = escapeHtml(item.url || "");
-            var safeName = escapeHtml(item.name || "Download");
             var safeSize = escapeHtml(item.size || "");
 
             qCards += '<a href="' + safeUrl + '" target="_blank" rel="noopener" class="qc' + (isBest ? ' qc-best' : '') + '" style="--ac:' + m.color + ';--ab:' + m.bg + ';--abr:' + m.border + '" data-url="' + safeUrl + '" data-action="nav">';
@@ -2672,26 +2692,27 @@
             qCards += '</div>';
             if (!isMobile) qCards += '<div class="qc-ripple"></div>';
             qCards += '</a>';
-          });
+          }
 
           var oCards = "";
-          oi.forEach(function (item) {
-            var safeUrl = escapeHtml(item.url || "");
-            var safeName = escapeHtml(item.name || "Download");
+          for (var oci = 0; oci < oItems.length; oci++) {
+            var oItem = oItems[oci];
+            var oSafeUrl = escapeHtml(oItem.url || "");
+            var oSafeName = escapeHtml(oItem.name || "Download");
 
-            oCards += '<a href="' + safeUrl + '" target="_blank" rel="noopener" class="ol" data-url="' + safeUrl + '">';
+            oCards += '<a href="' + oSafeUrl + '" target="_blank" rel="noopener" class="ol" data-url="' + oSafeUrl + '">';
             oCards += '<div class="ol-ico"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg></div>';
-            oCards += '<span>' + safeName + '</span>';
-            oCards += '<div class="ol-copy" data-action="copy" data-copy-url="' + safeUrl + '" title="نسخ"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg></div>';
+            oCards += '<span>' + oSafeName + '</span>';
+            oCards += '<div class="ol-copy" data-action="copy" data-copy-url="' + oSafeUrl + '" title="نسخ"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg></div>';
             oCards += '</a>';
-          });
+          }
 
           var safeTitle = escapeHtml(title);
 
           groupsHTML += '<div class="grp" style="--gi:' + gi + '">';
           groupsHTML += '<div class="grp-h">';
           groupsHTML += '<div class="grp-ico"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2" width="20" height="8" rx="2"/><rect x="2" y="14" width="20" height="8" rx="2"/><circle cx="6" cy="6" r="1"/><circle cx="6" cy="18" r="1"/></svg></div>';
-          groupsHTML += '<div class="grp-info"><div class="grp-title">' + safeTitle + '</div><div class="grp-sub">' + qi.length + ' جودات · ' + items.length + ' روابط</div></div>';
+          groupsHTML += '<div class="grp-info"><div class="grp-title">' + safeTitle + '</div><div class="grp-sub">' + qItems.length + ' جودات · ' + items.length + ' روابط</div></div>';
           groupsHTML += '<div class="grp-cnt">' + items.length + '</div>';
           groupsHTML += '<div class="grp-chevron"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg></div>';
           groupsHTML += '</div>';
@@ -2701,7 +2722,7 @@
           groupsHTML += '</div></div>';
 
           gi++;
-        });
+        }
 
         container.innerHTML = groupsHTML;
         showMainPage();
@@ -2747,82 +2768,57 @@
         }
       }
 
-      function safeDecodePayload(encoded) {
-        try {
-          return JSON.parse(decodeURIComponent(atob(encoded)));
-        } catch (e) { }
-        try {
-          return JSON.parse(atob(encoded));
-        } catch (e) { }
-        try {
-          return JSON.parse(decodeURIComponent(escape(atob(encoded))));
-        } catch (e) { }
-        return null;
+      function handlePayload(payload) {
+        if (dataLoaded) return;
+        if (!validatePayload(payload)) {
+          console.log("[CimaNow UI] handlePayload: validation failed");
+          showErrorScreen();
+          return;
+        }
+        try { localStorage.setItem(DATA_KEY, JSON.stringify(payload)); } catch (e) { }
+        buildUI(payload);
       }
 
       function tryReadData() {
         var payload = null;
 
         if (location.hash && location.hash.length > 1) {
-          try {
-            var hashData = location.hash.substring(1);
-            payload = safeDecodePayload(hashData);
-            if (payload) {
-              console.log("[CimaNow UI] Data loaded from URL hash");
-              try { history.replaceState(null, "", location.pathname + location.search); } catch (e) { }
-            }
-          } catch (e) {
-            console.log("[CimaNow UI] Hash decode failed:", e.message);
+          var hashData = location.hash.substring(1);
+          payload = decodePayload(hashData);
+          if (payload) {
+            console.log("[CimaNow UI] Data loaded from URL hash (" + hashData.length + " chars)");
+            try { history.replaceState(null, "", location.pathname + location.search); } catch (e) { }
+            return payload;
+          } else {
+            console.log("[CimaNow UI] Hash present but decode/validation failed");
           }
         }
 
-        if (!payload) {
-          try {
-            var stored = localStorage.getItem(DATA_KEY);
-            if (stored) {
-              payload = JSON.parse(stored);
-              if (payload) console.log("[CimaNow UI] Data loaded from localStorage");
+        try {
+          var stored = localStorage.getItem(DATA_KEY);
+          if (stored) {
+            var parsed = JSON.parse(stored);
+            if (validatePayload(parsed)) {
+              console.log("[CimaNow UI] Data loaded from localStorage");
+              return parsed;
             }
-          } catch (e) { }
-        }
+          }
+        } catch (e) { }
 
-        if (!payload) {
-          try {
-            var params = new URLSearchParams(location.search);
-            var paramData = params.get("d");
-            if (paramData) {
-              payload = safeDecodePayload(paramData);
-              if (payload) {
-                console.log("[CimaNow UI] Data loaded from URL param");
-                try { history.replaceState(null, "", location.pathname); } catch (e) { }
-              }
+        try {
+          var params = new URLSearchParams(location.search);
+          var paramData = params.get("d");
+          if (paramData) {
+            payload = decodePayload(paramData);
+            if (payload) {
+              console.log("[CimaNow UI] Data loaded from URL param");
+              try { history.replaceState(null, "", location.pathname); } catch (e) { }
+              return payload;
             }
-          } catch (e) { }
-        }
+          }
+        } catch (e) { }
 
-        return payload;
-      }
-
-      function validatePayload(payload) {
-        if (!payload) return false;
-        if (!payload.links) return false;
-        if (typeof payload.links !== "object") return false;
-        var keys = Object.keys(payload.links);
-        if (keys.length === 0) return false;
-        for (var i = 0; i < keys.length; i++) {
-          if (Array.isArray(payload.links[keys[i]]) && payload.links[keys[i]].length > 0) return true;
-        }
-        return false;
-      }
-
-      function handlePayload(payload) {
-        if (dataLoaded) return;
-        if (!validatePayload(payload)) {
-          showErrorScreen();
-          return;
-        }
-        try { localStorage.setItem(DATA_KEY, JSON.stringify(payload)); } catch (e) { }
-        buildUI(payload);
+        return null;
       }
 
       var bc = null;
@@ -2831,7 +2827,6 @@
         bc.onmessage = function (event) {
           if (event.data && event.data.type === "ezio_cimanow_payload") {
             console.log("[CimaNow UI] BroadcastChannel data received");
-            try { localStorage.setItem(DATA_KEY, JSON.stringify(event.data.payload)); } catch (e) { }
             handlePayload(event.data.payload);
             try { bc.close(); } catch (e) { }
           }
@@ -2841,9 +2836,9 @@
       window.addEventListener("storage", function (e) {
         if (e.key === DATA_KEY && e.newValue) {
           try {
-            var payload = JSON.parse(e.newValue);
+            var p = JSON.parse(e.newValue);
             console.log("[CimaNow UI] Storage event data received");
-            handlePayload(payload);
+            handlePayload(p);
           } catch (err) { }
         }
       });
@@ -2858,8 +2853,8 @@
       });
 
       var payload = tryReadData();
-      if (payload && validatePayload(payload)) {
-        document.getElementById("waitingScreen").classList.add("hidden");
+      if (payload) {
+        hideAllScreens();
         buildUI(payload);
       } else {
         document.getElementById("loader").classList.add("hidden");
@@ -2867,10 +2862,8 @@
 
         setTimeout(function () {
           if (!dataLoaded) {
-            var waiting = document.getElementById("waitingScreen");
-            if (waiting && !waiting.classList.contains("hidden")) {
-              showErrorScreen();
-            }
+            var w = document.getElementById("waitingScreen");
+            if (w && !w.classList.contains("hidden")) showErrorScreen();
           }
         }, 60000);
 
@@ -2885,8 +2878,8 @@
               var p = JSON.parse(stored);
               if (validatePayload(p)) {
                 clearInterval(pollInterval);
-                console.log("[CimaNow UI] Polling found data in localStorage");
-                document.getElementById("waitingScreen").classList.add("hidden");
+                console.log("[CimaNow UI] Polling found valid data");
+                hideAllScreens();
                 buildUI(p);
               }
             }
@@ -2898,4 +2891,4 @@
   </script>
 </body>
 
-        </html>
+  </html>
