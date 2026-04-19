@@ -2594,7 +2594,23 @@
       // ═══ DATA SOURCES ═══
       var DATA_KEY = "ezio_cimanow_data";
       var CHANNEL_NAME = "ezio_cimanow_channel";
-
+// Clear stale/empty cached payloads before reading
+(function clearStale() {
+  try {
+    var stored = localStorage.getItem(DATA_KEY);
+    if (stored) {
+      var p = JSON.parse(stored);
+      // Discard if links is empty OR timestamp is 0 OR older than 10 minutes
+      var isEmpty  = !p.links || !Object.keys(p.links).length;
+      var isZero   = !p.timestamp || p.timestamp === 0;
+      var isStale  = p.timestamp && (Date.now() - p.timestamp) > 10 * 60 * 1000;
+      if (isEmpty || isZero || isStale) {
+        localStorage.removeItem(DATA_KEY);
+        console.log("[CimaNow UI] Cleared stale localStorage entry");
+      }
+    }
+  } catch (e) {}
+})();
       function tryReadData() {
         var payload = null;
 
