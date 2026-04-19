@@ -2403,27 +2403,80 @@
         return false;
       }
 
-      function decodePayload(encoded) {
-        var raw = null;
-        try { raw = atob(encoded); } catch (e) { console.log("[CimaNow UI] atob failed:", e.message); return null; }
-        var jsonStr = null;
-        try { jsonStr = decodeURIComponent(raw); } catch (e) { }
-        if (jsonStr) {
-          try {
-            var obj = JSON.parse(jsonStr);
-            if (validatePayload(obj)) { console.log("[CimaNow UI] Decoded via decodeURIComponent(atob())"); return obj; }
-          } catch (e) { }
+      function base64ToUnicode(b64) {
+        try {
+          b64 = b64.replace(/-/g, "+").replace(/_/g, "/");
+          while (b64.length % 4) b64 += "=";
+        } catch (e) { }
+
+        try {
+          var binStr = atob(b64);
+          var bytes = new Uint8Array(binStr.length);
+          for (var i = 0; i < binStr.length; i++) bytes[i] = binStr.charCodeAt(i);
+          return new TextDecoder("utf-8").decode(bytes);
+        } catch (e) {
+          console.log("[CimaNow UI] TextDecoder approach failed:", e.message);
         }
+
         try {
-          var obj2 = JSON.parse(raw);
-          if (validatePayload(obj2)) { console.log("[CimaNow UI] Decoded via JSON.parse(atob())"); return obj2; }
-        } catch (e) { }
+          return decodeURIComponent(escape(atob(b64)));
+        } catch (e) {
+          console.log("[CimaNow UI] escape/unescape approach failed:", e.message);
+        }
+
         try {
-          var unescaped = decodeURIComponent(escape(raw));
-          var obj3 = JSON.parse(unescaped);
-          if (validatePayload(obj3)) { console.log("[CimaNow UI] Decoded via decodeURIComponent(escape(atob()))"); return obj3; }
+          return atob(b64);
+        } catch (e) {
+          console.log("[CimaNow UI] plain atob failed:", e.message);
+        }
+
+        return null;
+      }
+
+      function decodePayload(encoded) {
+        console.log("[CimaNow UI] Hash length:", encoded.length);
+        console.log("[CimaNow UI] Hash first 100 chars:", encoded.substring(0, 100));
+
+        try {
+          encoded = decodeURIComponent(encoded);
         } catch (e) { }
-        console.log("[CimaNow UI] All decode attempts failed");
+
+        var jsonStr = base64ToUnicode(encoded);
+        if (!jsonStr) {
+          console.log("[CimaNow UI] base64ToUnicode returned null");
+          return null;
+        }
+
+        console.log("[CimaNow UI] Decoded string first 200 chars:", jsonStr.substring(0, 200));
+
+        try {
+          var obj = JSON.parse(jsonStr);
+          if (validatePayload(obj)) {
+            console.log("[CimaNow UI] Payload validated successfully");
+            return obj;
+          }
+          console.log("[CimaNow UI] JSON parsed but validation failed. Keys:", Object.keys(obj));
+          if (obj.links) console.log("[CimaNow UI] links keys:", Object.keys(obj.links));
+          return null;
+        } catch (e) {
+          console.log("[CimaNow UI] JSON.parse failed:", e.message);
+          console.log("[CimaNow UI] Attempting to find JSON in string...");
+          try {
+            var start = jsonStr.indexOf("{");
+            var end = jsonStr.lastIndexOf("}");
+            if (start !== -1 && end !== -1 && end > start) {
+              var trimmed = jsonStr.substring(start, end + 1);
+              var obj2 = JSON.parse(trimmed);
+              if (validatePayload(obj2)) {
+                console.log("[CimaNow UI] Recovered payload from trimmed string");
+                return obj2;
+              }
+            }
+          } catch (e2) {
+            console.log("[CimaNow UI] Recovery also failed:", e2.message);
+          }
+        }
+
         return null;
       }
 
@@ -2606,17 +2659,29 @@
       }
 
       function tryReadHash() {
-        if (location.hash && location.hash.length > 1) {
-          var hashData = location.hash.substring(1);
-          var payload = decodePayload(hashData);
-          if (payload) {
-            console.log("[CimaNow UI] Data loaded from URL hash");
-            try { history.replaceState(null, "", location.pathname + location.search); } catch (e) { }
-            return payload;
-          } else {
-            console.log("[CimaNow UI] Hash present but decode/validation failed");
-          }
+        var rawHash = window.location.href.split("#")[1];
+        if (!rawHash || rawHash.length < 2) {
+          console.log("[CimaNow UI] No hash found in URL");
+          return null;
         }
+
+        console.log("[CimaNow UI] Raw hash length:", rawHash.length);
+
+        var decoded;
+        try {
+          decoded = decodeURIComponent(rawHash);
+        } catch (e) {
+          decoded = rawHash;
+        }
+
+        var payload = decodePayload(decoded);
+        if (payload) {
+          console.log("[CimaNow UI] Data loaded from URL hash");
+          try { history.replaceState(null, "", location.pathname + location.search); } catch (e) { }
+          return payload;
+        }
+
+        console.log("[CimaNow UI] Hash present but decode/validation failed");
         return null;
       }
 
@@ -2631,6 +2696,9 @@
 
     })();
   </script>
+</body>
+
+</html>
 </body>
 
   </html>
