@@ -832,7 +832,14 @@
     // ═══ BUILD UI FROM DATA ═══
     function buildUI(payload) {
       var data = payload.links;
-      var media = payload.media;
+      var media = payload.media || {type:"movie",title:"",season:null,episode:null,trans:"",year:null};
+
+      if (!media.type) media.type = "movie";
+      if (!media.title) media.title = "";
+      if (media.season === undefined) media.season = null;
+      if (media.episode === undefined) media.episode = null;
+      if (!media.trans) media.trans = "";
+      if (!media.year) media.year = null;
 
       if (!data || !Object.keys(data).length) {
         document.getElementById("waitingScreen").classList.add("hidden");
