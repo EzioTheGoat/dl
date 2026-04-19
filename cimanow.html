@@ -2566,29 +2566,32 @@
         return false;
       }
 
-      function decodePayload(encoded) {
-        var raw = null;
-        try { raw = atob(encoded); } catch (e) { console.log("[CimaNow UI] atob failed:", e.message); return null; }
-        var jsonStr = null;
-        try { jsonStr = decodeURIComponent(raw); } catch (e) { }
-        if (jsonStr) {
-          try {
-            var obj = JSON.parse(jsonStr);
-            if (validatePayload(obj)) { console.log("[CimaNow UI] Decoded via decodeURIComponent(atob())"); return obj; }
-          } catch (e) { }
+        function decodePayload(encoded) {
+    var clean = null;
+    try { clean = decodeURIComponent(encoded); } catch(e) { clean = encoded; }
+    clean = clean.replace(/-/g, "+").replace(/_/g, "/");
+    while (clean.length % 4) clean += "=";
+    var raw = null;
+    try { raw = atob(clean); } catch(e) {
+      console.log("[CimaNow UI] atob failed:", e.message, "length:", clean.length, "first50:", clean.substring(0, 50));
+      return null;
+    }
+    try {
+      var json = decodeURIComponent(raw);
+      var obj = JSON.parse(json);
+      if (validatePayload(obj)) return obj;
+    } catch(e) {}
+    try {
+      var obj2 = JSON.parse(raw);
+      if (validatePayload(obj2)) return obj2;
+    } catch(e) {}
+    try {
+      var obj3 = JSON.parse(decodeURIComponent(escape(raw)));
+      if (validatePayload(obj3)) return obj3;
+    } catch(e) {}
+    console.log("[CimaNow UI] All decode failed. raw length:", raw.length, "raw first 200:", raw.substring(0, 200));
+    return null;
         }
-        try {
-          var obj2 = JSON.parse(raw);
-          if (validatePayload(obj2)) { console.log("[CimaNow UI] Decoded via JSON.parse(atob())"); return obj2; }
-        } catch (e) { }
-        try {
-          var unescaped = decodeURIComponent(escape(raw));
-          var obj3 = JSON.parse(unescaped);
-          if (validatePayload(obj3)) { console.log("[CimaNow UI] Decoded via decodeURIComponent(escape(atob()))"); return obj3; }
-        } catch (e) { }
-        console.log("[CimaNow UI] All decode attempts failed");
-        return null;
-      }
 
       function buildUI(payload) {
         if (dataLoaded) return;
