@@ -999,7 +999,8 @@
       if (location.hash && location.hash.length > 1) {
         try {
           var hashData = location.hash.substring(1);
-          var decoded = decodeURIComponent(atob(hashData));
+          
+var decoded = decodeURIComponent(escape(atob(hashData)));
           payload = JSON.parse(decoded);
           console.log("[CimaNow UI] ✅ Data loaded from URL hash");
           // Clean hash
