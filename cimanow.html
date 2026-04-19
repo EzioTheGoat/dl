@@ -90,18 +90,6 @@
       overflow:hidden;margin-bottom:14px;
       position:relative;
     }
-    .loader-progress::before{
-      content:"";position:absolute;inset:0;
-      background:linear-gradient(90deg,var(--p1),var(--p3),var(--p4));
-      background-size:200% 100%;
-      width:0;transition:width .3s ease;
-      border-radius:10px;
-    }
-    .loader-progress.p20::before{width:20%}
-    .loader-progress.p40::before{width:40%}
-    .loader-progress.p60::before{width:60%}
-    .loader-progress.p80::before{width:80%}
-    .loader-progress.p100::before{width:100%}
     .loader-progress-fill{
       height:100%;border-radius:10px;
       background:linear-gradient(90deg,var(--p1),var(--p3),var(--p4));
@@ -111,25 +99,6 @@
     }
     @keyframes shimmerSlide{0%{background-position:200% 0}100%{background-position:-200% 0}}
     .loader-label{font-size:11px;color:var(--text3);font-weight:700;letter-spacing:.14em;text-transform:uppercase}
-
-    .waiting-screen{
-      position:fixed;inset:0;z-index:9998;background:var(--bg);
-      display:none;flex-direction:column;align-items:center;justify-content:center;
-      gap:20px;text-align:center;padding:28px;
-    }
-    .waiting-screen.visible{display:flex}
-    .waiting-screen.hidden{display:none!important}
-    .waiting-orb{
-      width:88px;height:88px;border-radius:26px;
-      background:linear-gradient(145deg,rgba(245,166,35,.12),rgba(245,166,35,.04));
-      border:1px solid rgba(245,166,35,.2);
-      display:flex;align-items:center;justify-content:center;color:#fcd34d;
-      animation:breathe 2.5s ease infinite;
-    }
-    @keyframes breathe{0%,100%{transform:scale(1);box-shadow:0 0 0 0 rgba(252,211,77,.2)}50%{transform:scale(1.04);box-shadow:0 0 40px 8px rgba(252,211,77,.06)}}
-    .waiting-title{font-size:24px;font-weight:900;color:var(--gold)}
-    .waiting-desc{font-size:14px;color:var(--text2);max-width:380px;line-height:1.9}
-    .waiting-hint{font-size:11px;color:var(--text3);margin-top:4px}
 
     .error-screen{
       position:fixed;inset:0;z-index:9997;background:var(--bg);
@@ -759,15 +728,6 @@
     <div class="loader-label" id="loaderText">جارٍ تحضير الروابط...</div>
   </div>
 
-  <div class="waiting-screen" id="waitingScreen">
-    <div class="waiting-orb">
-      <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
-    </div>
-    <div class="waiting-title">في انتظار البيانات...</div>
-    <div class="waiting-desc">يرجى فتح هذه الصفحة من خلال سكربت CimaNow Bypass أثناء مشاهدة محتوى على CimaNow</div>
-    <div class="waiting-hint">إذا قمت بالفعل بفتح صفحة المشاهدة، انتظر قليلاً...</div>
-  </div>
-
   <div class="error-screen" id="errorScreen">
     <div class="error-orb">
       <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
@@ -896,8 +856,8 @@
 (function(){
   "use strict";
 
-  var DATA_KEY     = "ezio_cimanow_data";
-  var _rendered    = false;
+  var DATA_KEY = "ezio_cimanow_data";
+  var _rendered = false;
 
   var isMobile = /Android|iPhone|iPad|iPod|Mobile|Opera Mini|IEMobile/i.test(navigator.userAgent);
   if(isMobile) document.body.classList.add("is-mobile");
@@ -907,14 +867,11 @@
   function markRendered(){ _rendered = true; }
 
   var loaderEl  = document.getElementById("loader");
-  var waitingEl = document.getElementById("waitingScreen");
   var errorEl   = document.getElementById("errorScreen");
   var pageEl    = document.getElementById("mainPage");
 
   function hideLoader(){ if(loaderEl) loaderEl.classList.add("hidden"); }
-  function showWaiting(){ if(waitingEl){ waitingEl.classList.remove("hidden"); waitingEl.classList.add("visible"); } }
-  function hideWaiting(){ if(waitingEl){ waitingEl.classList.remove("visible"); waitingEl.classList.add("hidden"); } }
-  function showError(){ hideLoader(); hideWaiting(); if(errorEl) errorEl.classList.add("show"); }
+  function showError(){ hideLoader(); if(errorEl) errorEl.classList.add("show"); }
 
   function getQM(q){
     var map = {
@@ -1085,12 +1042,11 @@
 
   function showMainPage(){
     if(isMobile){
-      hideLoader(); hideWaiting();
+      hideLoader();
       pageEl.classList.add("visible");
       document.querySelectorAll(".grp").forEach(function(g){ g.classList.add("revealed"); });
       animateCounters();
     } else {
-      hideWaiting();
       var fill = document.getElementById("loaderFill");
       var prog = 0;
       var steps = [22,23,20,20,15];
@@ -1133,7 +1089,6 @@
     var media = payload.media || {};
 
     if(!Object.keys(data).length){ showError(); return; }
-    hideWaiting();
 
     var allItems = [];
     Object.keys(data).forEach(function(k){ allItems = allItems.concat(data[k]); });
@@ -1270,8 +1225,9 @@
         var hashStr = location.hash.slice(1);
         var decoded = JSON.parse(decodeURIComponent(atob(hashStr)));
         if(decoded && decoded.links && Object.keys(decoded.links).length){
-          history.replaceState(null,"",location.pathname+location.search);
+          if(!decoded.timestamp) decoded.timestamp = Date.now();
           try{ localStorage.setItem(DATA_KEY, JSON.stringify(decoded)); } catch(e){}
+          history.replaceState(null,"",location.pathname+location.search);
           return decoded;
         }
       } catch(e){ console.warn("[CimaNow UI] Hash decode failed:", e.message); }
@@ -1293,14 +1249,7 @@
     var payload = tryReadData();
     if(payload){ buildUI(payload); return; }
     hideLoader();
-    showWaiting();
-    var attempts=0;
-    var poll = setInterval(function(){
-      attempts++;
-      var p = tryReadData();
-      if(p){ clearInterval(poll); buildUI(p); return; }
-      if(attempts>=20){ clearInterval(poll); showError(); }
-    }, 500);
+    showError();
   })();
 
 })();
