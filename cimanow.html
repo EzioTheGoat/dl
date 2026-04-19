@@ -2785,6 +2785,18 @@
       function tryReadData() {
         var payload = null;
 
+        
+ try {
+      var stored = localStorage.getItem(DATA_KEY);
+      if (stored) {
+        var check = JSON.parse(stored);
+        if (check && check.timestamp && (Date.now() - check.timestamp > 300000)) {
+          localStorage.removeItem(DATA_KEY);
+          console.log("[CimaNow UI] Cleared stale localStorage (older than 5 min)");
+        }
+      }
+    } catch(e) {}
+
         if (location.hash && location.hash.length > 1) {
           var hashData = location.hash.substring(1);
           payload = decodePayload(hashData);
