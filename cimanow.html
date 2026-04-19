@@ -834,12 +834,11 @@
       var data = payload.links;
       var media = payload.media;
 
-   if (!data || !Object.keys(data).length) {
-    document.getElementById("loader").classList.add("hidden");
-    document.getElementById("waitingScreen").classList.add("hidden");
-    document.getElementById("errorScreen").classList.add("show");
-    return;
-   }
+      if (!data || !Object.keys(data).length) {
+        document.getElementById("waitingScreen").classList.add("hidden");
+        document.getElementById("errorScreen").classList.add("show");
+        return;
+      }
 
       // Hide waiting/error
       document.getElementById("waitingScreen").classList.add("hidden");
@@ -1087,22 +1086,11 @@
 
     // ═══ INIT ═══
     var payload = tryReadData();
-   function forceHideLoader() {
-    var loader = document.getElementById("loader");
-    var waiting = document.getElementById("waitingScreen");
-    if (loader) loader.classList.add("hidden");
-    if (waiting) waiting.classList.add("hidden");
-}
-
-if (payload) {
-    forceHideLoader();
-    try {
-        buildUI(payload);
-    } catch(err) {
-        console.error("[CimaNow UI] buildUI crashed:", err);
-        document.getElementById("errorScreen").classList.add("show");
-    }
-} else {
+    if (payload) {
+      // Data already available — build immediately
+      document.getElementById("waitingScreen").classList.add("hidden");
+      buildUI(payload);
+    } else {
       // Show waiting screen, hide loader
       document.getElementById("loader").classList.add("hidden");
       document.getElementById("waitingScreen").style.display = "flex";
