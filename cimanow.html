@@ -201,127 +201,6 @@
       font-weight: 500
     }
 
-    .waiting-screen {
-      position: fixed;
-      inset: 0;
-      z-index: 9998;
-      background: var(--bg-primary);
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      gap: 24px;
-      text-align: center;
-      padding: 24px;
-      transition: opacity .5s, visibility .5s;
-    }
-
-    .waiting-screen.hidden {
-      opacity: 0;
-      visibility: hidden;
-      pointer-events: none
-    }
-
-    .waiting-icon {
-      width: 88px;
-      height: 88px;
-      border-radius: 26px;
-      background: linear-gradient(135deg, rgba(245, 158, 11, .15), rgba(245, 158, 11, .05));
-      border: 1px solid rgba(245, 158, 11, .25);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      color: #fbbf24;
-      animation: loaderPulse 2s ease infinite;
-      position: relative;
-    }
-
-    .waiting-icon::before {
-      content: "";
-      position: absolute;
-      inset: -2px;
-      border-radius: 28px;
-      background: conic-gradient(from 0deg, transparent, rgba(245, 158, 11, .3), transparent);
-      animation: loaderSpin 4s linear infinite;
-      z-index: -1
-    }
-
-    .waiting-icon::after {
-      content: "";
-      position: absolute;
-      inset: 0;
-      border-radius: 26px;
-      background: var(--bg-primary)
-    }
-
-    .waiting-icon svg {
-      position: relative;
-      z-index: 2
-    }
-
-    .waiting-title {
-      font-size: 24px;
-      font-weight: 900;
-      background: linear-gradient(135deg, #fbbf24, #f59e0b);
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-      background-clip: text
-    }
-
-    .waiting-desc {
-      font-size: 14px;
-      color: var(--text-secondary);
-      max-width: 420px;
-      line-height: 1.9
-    }
-
-    .waiting-hint {
-      font-size: 11px;
-      color: var(--text-muted);
-      margin-top: 8px;
-      padding: 8px 20px;
-      border-radius: 10px;
-      background: rgba(255, 255, 255, .02);
-      border: 1px solid rgba(255, 255, 255, .04)
-    }
-
-    .waiting-dots {
-      display: flex;
-      gap: 6px;
-      margin-top: 4px
-    }
-
-    .waiting-dots span {
-      width: 6px;
-      height: 6px;
-      border-radius: 50%;
-      background: #fbbf24;
-      animation: dotBounce 1.4s ease infinite
-    }
-
-    .waiting-dots span:nth-child(2) {
-      animation-delay: .2s
-    }
-
-    .waiting-dots span:nth-child(3) {
-      animation-delay: .4s
-    }
-
-    @keyframes dotBounce {
-
-      0%,
-      80%,
-      100% {
-        transform: scale(0);
-        opacity: .3
-      }
-
-      40% {
-        transform: scale(1);
-        opacity: 1
-      }
-    }
-
     .error-screen {
       position: fixed;
       inset: 0;
@@ -1736,24 +1615,6 @@
       border-color: rgba(99, 102, 241, .35)
     }
 
-    #noDataScreen {
-      display: none;
-      position: fixed;
-      inset: 0;
-      z-index: 9996;
-      background: var(--bg-primary);
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      gap: 20px;
-      text-align: center;
-      padding: 24px;
-    }
-
-    #noDataScreen.show {
-      display: flex
-    }
-
     @media(prefers-reduced-motion:reduce) {
       * {
         animation-duration: .001ms !important;
@@ -2044,10 +1905,6 @@
       display: none !important
     }
 
-    body.is-mobile .waiting-screen .waiting-icon {
-      animation: none !important
-    }
-
     body.is-mobile .qc-particles,
     body.is-mobile .qc-glow,
     body.is-mobile .qc-shine,
@@ -2126,20 +1983,6 @@
     </div>
     <div class="loader-text">جارٍ تحضير الروابط...</div>
     <div class="loader-subtext">Ezio Bypass</div>
-  </div>
-
-  <div class="waiting-screen" id="waitingScreen">
-    <div class="waiting-icon">
-      <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"
-        stroke-linecap="round" stroke-linejoin="round">
-        <circle cx="12" cy="12" r="10" />
-        <polyline points="12 6 12 12 16 14" />
-      </svg>
-    </div>
-    <div class="waiting-title">في انتظار البيانات...</div>
-    <div class="waiting-desc">يرجى فتح هذه الصفحة من خلال سكربت CimaNow Bypass أثناء مشاهدة محتوى على CimaNow</div>
-    <div class="waiting-dots"><span></span><span></span><span></span></div>
-    <div class="waiting-hint">إذا قمت بالفعل بفتح صفحة المشاهدة، انتظر قليلاً...</div>
   </div>
 
   <div class="error-screen" id="errorScreen">
@@ -2315,8 +2158,6 @@
 
       document.getElementById("yearSpan").textContent = new Date().getFullYear();
 
-      var DATA_KEY = "ezio_cimanow_data";
-      var CHANNEL_NAME = "ezio_cimanow_channel";
       var dataLoaded = false;
 
       function escapeHtml(str) {
@@ -2534,19 +2375,15 @@
 
       function hideAllScreens() {
         var l = document.getElementById("loader");
-        var w = document.getElementById("waitingScreen");
         var e = document.getElementById("errorScreen");
         if (l) l.classList.add("hidden");
-        if (w) w.classList.add("hidden");
         if (e) e.classList.remove("show");
       }
 
       function showErrorScreen() {
         var l = document.getElementById("loader");
-        var w = document.getElementById("waitingScreen");
         var e = document.getElementById("errorScreen");
         if (l) l.classList.add("hidden");
-        if (w) w.classList.add("hidden");
         if (e) e.classList.add("show");
       }
 
@@ -2768,34 +2605,10 @@
         }
       }
 
-      function handlePayload(payload) {
-        if (dataLoaded) return;
-        if (!validatePayload(payload)) {
-          console.log("[CimaNow UI] handlePayload: validation failed");
-          showErrorScreen();
-          return;
-        }
-        try { localStorage.setItem(DATA_KEY, JSON.stringify(payload)); } catch (e) { }
-        buildUI(payload);
-      }
-
-      function tryReadData() {
-        var payload = null;
-
-        try {
-          var stored = localStorage.getItem(DATA_KEY);
-          if (stored) {
-            var check = JSON.parse(stored);
-            if (!check || !check.timestamp || check.timestamp === 0 || (Date.now() - check.timestamp > 300000)) {
-              localStorage.removeItem(DATA_KEY);
-              console.log("[CimaNow UI] Cleared stale/invalid localStorage");
-            }
-          }
-        } catch (e) { localStorage.removeItem(DATA_KEY); }
-
+      function tryReadHash() {
         if (location.hash && location.hash.length > 1) {
           var hashData = location.hash.substring(1);
-          payload = decodePayload(hashData);
+          var payload = decodePayload(hashData);
           if (payload) {
             console.log("[CimaNow UI] Data loaded from URL hash");
             try { history.replaceState(null, "", location.pathname + location.search); } catch (e) { }
@@ -2804,102 +2617,20 @@
             console.log("[CimaNow UI] Hash present but decode/validation failed");
           }
         }
-
-        try {
-          var stored2 = localStorage.getItem(DATA_KEY);
-          if (stored2) {
-            var parsed = JSON.parse(stored2);
-            if (validatePayload(parsed)) {
-              console.log("[CimaNow UI] Data loaded from localStorage");
-              return parsed;
-            }
-          }
-        } catch (e) { }
-
-        try {
-          var params = new URLSearchParams(location.search);
-          var paramData = params.get("d");
-          if (paramData) {
-            payload = decodePayload(paramData);
-            if (payload) {
-              console.log("[CimaNow UI] Data loaded from URL param");
-              try { history.replaceState(null, "", location.pathname); } catch (e) { }
-              return payload;
-            }
-          }
-        } catch (e) { }
-
         return null;
       }
 
-      var bc = null;
-      try {
-        bc = new BroadcastChannel(CHANNEL_NAME);
-        bc.onmessage = function (event) {
-          if (event.data && event.data.type === "ezio_cimanow_payload") {
-            console.log("[CimaNow UI] BroadcastChannel data received");
-            handlePayload(event.data.payload);
-            try { bc.close(); } catch (e) { }
-          }
-        };
-      } catch (e) { }
-
-      window.addEventListener("storage", function (e) {
-        if (e.key === DATA_KEY && e.newValue) {
-          try {
-            var p = JSON.parse(e.newValue);
-            console.log("[CimaNow UI] Storage event data received");
-            handlePayload(p);
-          } catch (err) { }
-        }
-      });
-
-      window.addEventListener("message", function (e) {
-        try {
-          if (e.data && e.data.type === "ezio_cimanow_payload") {
-            console.log("[CimaNow UI] postMessage data received");
-            handlePayload(e.data.payload);
-          }
-        } catch (err) { }
-      });
-
-      var payload = tryReadData();
+      var payload = tryReadHash();
       if (payload) {
         hideAllScreens();
         buildUI(payload);
       } else {
         document.getElementById("loader").classList.add("hidden");
-        document.getElementById("waitingScreen").style.display = "flex";
-
-        setTimeout(function () {
-          if (!dataLoaded) {
-            var w = document.getElementById("waitingScreen");
-            if (w && !w.classList.contains("hidden")) showErrorScreen();
-          }
-        }, 60000);
-
-        var pollCount = 0;
-        var pollInterval = setInterval(function () {
-          if (dataLoaded) { clearInterval(pollInterval); return; }
-          pollCount++;
-          if (pollCount > 120) { clearInterval(pollInterval); return; }
-          try {
-            var stored = localStorage.getItem(DATA_KEY);
-            if (stored) {
-              var p = JSON.parse(stored);
-              if (validatePayload(p)) {
-                clearInterval(pollInterval);
-                console.log("[CimaNow UI] Polling found valid data");
-                hideAllScreens();
-                buildUI(p);
-              }
-            }
-          } catch (e) { }
-        }, 500);
+        showErrorScreen();
       }
 
     })();
   </script>
 </body>
 
-            </html>
+  </html>
