@@ -893,7 +893,7 @@
   </div>
 
 <script>
-(function () {
+  (function () {
   "use strict";
 
   var _rendered = false;
@@ -935,18 +935,20 @@
 
   if (!isMobile) {
     var pEl = document.getElementById("particles");
-    for (var i = 0; i < 35; i++) {
-      var pt = document.createElement("div");
-      pt.className = "p-dot";
-      var size = .8 + Math.random() * 2.2;
-      pt.style.cssText = [
-        "left:" + (Math.random() * 100) + "%",
-        "width:" + size + "px", "height:" + size + "px",
-        "background:rgba(" + (Math.random() > .5 ? "124,106,247" : "6,200,224") + ",.12)",
-        "animation-duration:" + (10 + Math.random() * 18) + "s",
-        "animation-delay:" + (Math.random() * 14) + "s"
-      ].join(";");
-      pEl.appendChild(pt);
+    if (pEl) {
+      for (var i = 0; i < 35; i++) {
+        var pt = document.createElement("div");
+        pt.className = "p-dot";
+        var size = .8 + Math.random() * 2.2;
+        pt.style.cssText = [
+          "left:" + (Math.random() * 100) + "%",
+          "width:" + size + "px", "height:" + size + "px",
+          "background:rgba(" + (Math.random() > .5 ? "124,106,247" : "6,200,224") + ",.12)",
+          "animation-duration:" + (10 + Math.random() * 18) + "s",
+          "animation-delay:" + (Math.random() * 14) + "s"
+        ].join(";");
+        pEl.appendChild(pt);
+      }
     }
   }
 
@@ -1314,6 +1316,7 @@
       if (attempts >= 20) { clearInterval(poll); showError(); }
     }, 500);
   })();
+
 })();
 </script>
 </body>
