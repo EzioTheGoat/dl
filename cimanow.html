@@ -2307,7 +2307,7 @@
           if (rp) {
             var rect = card.getBoundingClientRect();
             var sz = Math.max(rect.width, rect.height) * 2;
-            rp.style.cssText = "width:" + sz + "px;height:" + sz + "px;left:50%;top:50%;margin-left:" + (-sz / 2) + "px;margin-top:" + (-sz / 2) + "px;transform:scale((0);opacity:1;";
+            rp.style.cssText = "width:" + sz + "px;height:" + sz + "px;left:50%;top:50%;margin-left:" + (-sz / 2) + "px;margin-top:" + (-sz / 2) + "px;transform:scale(0);opacity:1;";
             requestAnimationFrame(function () {
               rp.style.transition = "transform .55s cubic-bezier(.22,1,.36,1),opacity .55s";
               rp.style.transform = "scale(1)";
@@ -2446,6 +2446,8 @@
       function buildUI(payload) {
         if (alreadyRendered()) return;
         markRendered();
+
+        try { history.replaceState(null, "", location.pathname + location.search); } catch (e) { }
 
         var data = payload.links || {};
         var media = payload.media || {};
@@ -2591,12 +2593,16 @@
             if (p && p.links && Object.keys(p.links).length) {
               return p;
             }
-          } catch (e) { }
+          } catch (e) {
+            console.error("[CimaNow UI] __EZIO_PAYLOAD__ error:", e.message);
+          }
         }
 
         if (location.hash && location.hash.length > 1) {
           try {
-            var hashStr = location.hash.slice(1);
+            var hashStr = decodeURIComponent(location.hash.slice(1));
+            hashStr = hashStr.replace(/-/g, '+').replace(/_/g, '/');
+            while (hashStr.length % 4) hashStr += '=';
             var binary = atob(hashStr);
             var bytes = new Uint8Array(binary.length);
             for (var i = 0; i < binary.length; i++) {
@@ -2605,10 +2611,11 @@
             var jsonStr = new TextDecoder("utf-8").decode(bytes);
             var decoded = JSON.parse(jsonStr);
             if (decoded && decoded.links && Object.keys(decoded.links).length) {
-              history.replaceState(null, "", location.pathname + location.search);
               return decoded;
             }
-          } catch (e) { }
+          } catch (e) {
+            console.error("[CimaNow UI] Hash decode error:", e.message);
+          }
         }
 
         return null;
@@ -2644,4 +2651,4 @@
   </script>
 </body>
 
-  </html>
+</html>
