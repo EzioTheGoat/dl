@@ -2597,7 +2597,13 @@
         if (location.hash && location.hash.length > 1) {
           try {
             var hashStr = location.hash.slice(1);
-            var decoded = JSON.parse(decodeURIComponent(atob(hashStr)));
+            var binary = atob(hashStr);
+            var bytes = new Uint8Array(binary.length);
+            for (var i = 0; i < binary.length; i++) {
+              bytes[i] = binary.charCodeAt(i);
+            }
+            var jsonStr = new TextDecoder("utf-8").decode(bytes);
+            var decoded = JSON.parse(jsonStr);
             if (decoded && decoded.links && Object.keys(decoded.links).length) {
               history.replaceState(null, "", location.pathname + location.search);
               return decoded;
