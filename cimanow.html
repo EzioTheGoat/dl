@@ -1264,30 +1264,48 @@
     showMainPage();
   }
 
-  function tryReadData() {
-  if (!location.hash || location.hash.length <= 1) return null;
-  try {
-    var hashStr = location.hash.slice(1);
-    var decoded = JSON.parse(decodeURIComponent(atob(hashStr)));
-    if (decoded && decoded.links && Object.keys(decoded.links).length) {
-      history.replaceState(null, "", location.pathname + location.search);
-      return decoded;
+  function tryReadData(){
+    if(location.hash && location.hash.length>1){
+      try{
+        var hashStr = location.hash.slice(1);
+        var b64 = hashStr.replace(/-/g, '+').replace(/_/g, '/');
+        while(b64.length % 4) b64 += '=';
+        var decoded = JSON.parse(decodeURIComponent(atob(b64)));
+        if(decoded && decoded.links && Object.keys(decoded.links).length){
+          history.replaceState(null,"",location.pathname+location.search);
+          decoded.timestamp = Date.now();
+          try{ localStorage.setItem(DATA_KEY, JSON.stringify(decoded)); } catch(e){}
+          return decoded;
+        }
+      } catch(e){ console.warn("[CimaNow UI] Hash decode failed:", e.message); }
     }
-  } catch (e) {
-    console.warn("[CimaNow UI] Hash decode failed:", e.message);
+    try{
+      var raw = localStorage.getItem(DATA_KEY);
+      if(raw){
+        var p = JSON.parse(raw);
+        if(p && p.links && Object.keys(p.links).length){
+          if(!p.timestamp) p.timestamp = Date.now();
+          if(Date.now()-p.timestamp < 30*60*1000) return p;
+          else localStorage.removeItem(DATA_KEY);
+        }
+      }
+    } catch(e){}
+    return null;
   }
-  return null;
-}
 
-(function init() {
-  var payload = tryReadData();
-  if (payload) {
-    buildUI(payload);
-  } else {
-    showError();
-  }
-})();
-
+ (function init() {
+        var payload = tryReadData();
+        if (payload) { buildUI(payload); return; }
+        hideLoader();
+        showWaiting();
+        var attempts = 0;
+        var poll = setInterval(function () {
+          attempts++;
+          var p = tryReadData();
+          if (p) { clearInterval(poll); buildUI(p); return; }
+          if (attempts >= 20) { clearInterval(poll); showError(); }
+        }, 500);
+      })();
 
 
 })();
