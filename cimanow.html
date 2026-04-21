@@ -2584,53 +2584,53 @@
         showMainPage();
       }
 
-     function tryReadData() {
-    if (window.__EZIO_PAYLOAD__) {
-        try {
+      function tryReadData() {
+        if (window.__EZIO_PAYLOAD__) {
+          try {
             var p = window.__EZIO_PAYLOAD__;
             if (p && p.links && Object.keys(p.links).length) {
-                return p;
+              return p;
             }
-        } catch (e) {}
-    }
-
-    if (!location.hash || location.hash.length <= 1) return null;
-
-    var hashStr = location.hash.slice(1);
-
-    try {
-        var binary = atob(hashStr);
-        var bytes = new Uint8Array(binary.length);
-        for (var i = 0; i < binary.length; i++) {
-            bytes[i] = binary.charCodeAt(i);
+          } catch (e) { }
         }
-        var jsonStr = new TextDecoder().decode(bytes);
-        var decoded = JSON.parse(jsonStr);
-        if (decoded && decoded.links && Object.keys(decoded.links).length) {
+
+        if (!location.hash || location.hash.length <= 1) return null;
+
+        var hashStr = location.hash.slice(1);
+
+        try {
+          var binary = atob(hashStr);
+          var bytes = new Uint8Array(binary.length);
+          for (var i = 0; i < binary.length; i++) {
+            bytes[i] = binary.charCodeAt(i);
+          }
+          var jsonStr = new TextDecoder().decode(bytes);
+          var decoded = JSON.parse(jsonStr);
+          if (decoded && decoded.links && Object.keys(decoded.links).length) {
             history.replaceState(null, "", location.pathname + location.search);
             return decoded;
-        }
-    } catch (e) {}
+          }
+        } catch (e) { }
 
-    try {
-        var jsonStr2 = decodeURIComponent(hashStr);
-        var decoded2 = JSON.parse(jsonStr2);
-        if (decoded2 && decoded2.links && Object.keys(decoded2.links).length) {
+        try {
+          var jsonStr2 = decodeURIComponent(hashStr);
+          var decoded2 = JSON.parse(jsonStr2);
+          if (decoded2 && decoded2.links && Object.keys(decoded2.links).length) {
             history.replaceState(null, "", location.pathname + location.search);
             return decoded2;
-        }
-    } catch (e) {}
+          }
+        } catch (e) { }
 
-    try {
-        var decoded3 = JSON.parse(hashStr);
-        if (decoded3 && decoded3.links && Object.keys(decoded3.links).length) {
+        try {
+          var decoded3 = JSON.parse(hashStr);
+          if (decoded3 && decoded3.links && Object.keys(decoded3.links).length) {
             history.replaceState(null, "", location.pathname + location.search);
             return decoded3;
-        }
-    } catch (e) {}
+          }
+        } catch (e) { }
 
-    return null;
-     }
+        return null;
+      }
 
       (function init() {
         var payload = tryReadData();
