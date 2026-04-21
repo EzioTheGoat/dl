@@ -2594,40 +2594,32 @@
           } catch (e) { }
         }
 
-        if (!location.hash || location.hash.length <= 1) return null;
+        if (location.hash && location.hash.length > 1) {
+          var hashStr = location.hash.slice(1);
 
-        var hashStr = location.hash.slice(1);
+          try {
+            var jsonStr = decodeURIComponent(hashStr);
+            var decoded = JSON.parse(jsonStr);
+            if (decoded && decoded.links && Object.keys(decoded.links).length) {
+              history.replaceState(null, "", location.pathname + location.search);
+              return decoded;
+            }
+          } catch (e) { }
 
-        try {
-          var binary = atob(hashStr);
-          var bytes = new Uint8Array(binary.length);
-          for (var i = 0; i < binary.length; i++) {
-            bytes[i] = binary.charCodeAt(i);
-          }
-          var jsonStr = new TextDecoder().decode(bytes);
-          var decoded = JSON.parse(jsonStr);
-          if (decoded && decoded.links && Object.keys(decoded.links).length) {
-            history.replaceState(null, "", location.pathname + location.search);
-            return decoded;
-          }
-        } catch (e) { }
-
-        try {
-          var jsonStr2 = decodeURIComponent(hashStr);
-          var decoded2 = JSON.parse(jsonStr2);
-          if (decoded2 && decoded2.links && Object.keys(decoded2.links).length) {
-            history.replaceState(null, "", location.pathname + location.search);
-            return decoded2;
-          }
-        } catch (e) { }
-
-        try {
-          var decoded3 = JSON.parse(hashStr);
-          if (decoded3 && decoded3.links && Object.keys(decoded3.links).length) {
-            history.replaceState(null, "", location.pathname + location.search);
-            return decoded3;
-          }
-        } catch (e) { }
+          try {
+            var binary = atob(hashStr);
+            var bytes = new Uint8Array(binary.length);
+            for (var i = 0; i < binary.length; i++) {
+              bytes[i] = binary.charCodeAt(i);
+            }
+            var jsonStr2 = new TextDecoder().decode(bytes);
+            var decoded2 = JSON.parse(jsonStr2);
+            if (decoded2 && decoded2.links && Object.keys(decoded2.links).length) {
+              history.replaceState(null, "", location.pathname + location.search);
+              return decoded2;
+            }
+          } catch (e) { }
+        }
 
         return null;
       }
