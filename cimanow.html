@@ -2584,36 +2584,47 @@
         showMainPage();
       }
 
-      function tryReadData() {
-        if (window.__EZIO_PAYLOAD__) {
-          try {
+function tryReadData() {
+    if (window.__EZIO_PAYLOAD__) {
+        try {
             var p = window.__EZIO_PAYLOAD__;
             if (p && p.links && Object.keys(p.links).length) {
-              return p;
+                return p;
             }
-          } catch (e) { }
-        }
+        } catch (e) {}
+    }
 
-        if (location.hash && location.hash.length > 1) {
-          try {
-            var hashStr = location.hash.slice(1);
-            var binary = atob(hashStr);
+    var encoded = null;
+
+    if (window.name && window.name.indexOf("EZIO_DATA:") === 0) {
+        encoded = window.name.slice(10);
+        window.name = "";
+    }
+
+    if (!encoded && location.hash && location.hash.length > 1) {
+        encoded = location.hash.slice(1);
+    }
+
+    if (encoded) {
+        try {
+            var binary = atob(encoded);
             var bytes = new Uint8Array(binary.length);
             for (var i = 0; i < binary.length; i++) {
-              bytes[i] = binary.charCodeAt(i);
+                bytes[i] = binary.charCodeAt(i);
             }
             var jsonStr = new TextDecoder().decode(bytes);
             var decoded = JSON.parse(jsonStr);
             if (decoded && decoded.links && Object.keys(decoded.links).length) {
-              history.replaceState(null, "", location.pathname + location.search);
-              return decoded;
+                try {
+                    history.replaceState(null, "", location.pathname + location.search);
+                } catch (e) {}
+                return decoded;
             }
-          } catch (e) { }
-        }
+        } catch (e) {}
+    }
 
-        return null;
-      }
-
+    return null;
+}
       (function init() {
         var payload = tryReadData();
         if (payload) { buildUI(payload); return; }
