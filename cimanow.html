@@ -2594,6 +2594,19 @@ function tryReadData() {
         } catch (e) {}
     }
 
+    try {
+        var raw = localStorage.getItem("EZIO_DATA");
+        if (raw) {
+            localStorage.removeItem("EZIO_DATA");
+            var parsed = JSON.parse(raw);
+            if (parsed && parsed.links && Object.keys(parsed.links).length) {
+                if (parsed.timestamp && (Date.now() - parsed.timestamp) < 30000) {
+                    return parsed;
+                }
+            }
+        }
+    } catch (e) {}
+
     if (location.hash && location.hash.length > 1) {
         try {
             var hashStr = location.hash.slice(1);
@@ -2615,22 +2628,30 @@ function tryReadData() {
 }
 
 (function init() {
-    var payload = tryReadData();
-    if (payload) { buildUI(payload); return; }
-
     window.addEventListener("message", function (e) {
-        if (alreadyRendered()) return;
-        if (e.data && e.data.type === "EZIO_DATA" && e.data.payload) {
-            var p = e.data.payload;
-            if (p && p.links && Object.keys(p.links).length) {
-                buildUI(p);
-            }
+        if (e.data && e.data.type === "EZIO_STORE" && e.data.payload) {
+            try {
+                var p = e.data.payload;
+                if (p && p.links && Object.keys(p.links).length) {
+                    localStorage.setItem("EZIO_DATA", JSON.stringify(p));
+                    if (e.source) {
+                        e.source.postMessage("EZIO_STORED", e.origin);
+                    }
+                }
+            } catch (err) {}
+            return;
         }
     });
 
-    if (window.opener) {
-        try { window.opener.postMessage("EZIO_READY", "*"); } catch (e) {}
+    if (window !== window.top) {
+        try {
+            window.parent.postMessage("EZIO_READY", "*");
+        } catch (e) {}
+        return;
     }
+
+    var payload = tryReadData();
+    if (payload) { buildUI(payload); return; }
 
     window.addEventListener("ezio-data-ready", function () {
         if (window.__EZIO_PAYLOAD__ && !alreadyRendered()) {
@@ -2644,11 +2665,6 @@ function tryReadData() {
     var attempts = 0;
     var poll = setInterval(function () {
         attempts++;
-
-        if (window.opener && !alreadyRendered()) {
-            try { window.opener.postMessage("EZIO_READY", "*"); } catch (e) {}
-        }
-
         if (window.__EZIO_PAYLOAD__ && !alreadyRendered()) {
             clearInterval(poll);
             buildUI(window.__EZIO_PAYLOAD__);
