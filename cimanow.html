@@ -2594,39 +2594,44 @@ function tryReadData() {
         } catch (e) {}
     }
 
-    try {
-        var raw = localStorage.getItem("EZIO_DATA");
-        if (raw) {
-            localStorage.removeItem("EZIO_DATA");
-            var parsed = JSON.parse(raw);
-            if (parsed && parsed.links && Object.keys(parsed.links).length) {
-                if (parsed.timestamp && (Date.now() - parsed.timestamp) < 30000) {
-                    return parsed;
-                }
-            }
-        }
-    } catch (e) {}
-
     if (location.hash && location.hash.length > 1) {
+        var hashStr = location.hash.slice(1);
+        console.log("[CimaNow UI] Hash found, length: " + hashStr.length);
+
         try {
-            var hashStr = location.hash.slice(1);
+            var jsonStr = decodeURIComponent(hashStr);
+            var decoded = JSON.parse(jsonStr);
+            if (decoded && decoded.links && Object.keys(decoded.links).length) {
+                console.log("[CimaNow UI] Decoded " + Object.keys(decoded.links).length + " groups");
+                history.replaceState(null, "", location.pathname + location.search);
+                return decoded;
+            }
+        } catch (e) {
+            console.error("[CimaNow UI] Decode method 1 failed:", e.message);
+        }
+
+        try {
             var binary = atob(hashStr);
             var bytes = new Uint8Array(binary.length);
             for (var i = 0; i < binary.length; i++) {
                 bytes[i] = binary.charCodeAt(i);
             }
-            var jsonStr = new TextDecoder().decode(bytes);
-            var decoded = JSON.parse(jsonStr);
-            if (decoded && decoded.links && Object.keys(decoded.links).length) {
+            var jsonStr2 = new TextDecoder().decode(bytes);
+            var decoded2 = JSON.parse(jsonStr2);
+            if (decoded2 && decoded2.links && Object.keys(decoded2.links).length) {
+                console.log("[CimaNow UI] Decoded via fallback base64");
                 history.replaceState(null, "", location.pathname + location.search);
-                return decoded;
+                return decoded2;
             }
-        } catch (e) {}
+        } catch (e) {
+            console.error("[CimaNow UI] Decode method 2 failed:", e.message);
+        }
+    } else {
+        console.log("[CimaNow UI] No hash found in URL");
     }
 
     return null;
 }
-
 (function init() {
     window.addEventListener("message", function (e) {
         if (e.data && e.data.type === "EZIO_STORE" && e.data.payload) {
